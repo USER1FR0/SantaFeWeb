@@ -1,0 +1,230 @@
+<div class="admin-usuarios-wrapper">
+  <header class="page-header">
+    <h2>Gestión de Usuarios</h2>
+    @if (vista === 'lista') {
+      <button class="btn btn-primary" (click)="abrirCrear()">+ Nuevo Usuario</button>
+    }
+  </header>
+
+  @if (mensaje) {
+    <div [class]="esError ? 'alert alert-error' : 'alert alert-success'">{{ mensaje }}</div>
+  }
+
+  <!-- Lista -->
+  @if (vista === 'lista') {
+    <section class="search-section">
+      <form [formGroup]="buscarForm" (ngSubmit)="buscar()" class="search-form">
+        <input
+          formControlName="nombre"
+          type="text"
+          placeholder="Buscar por nombre..."
+          class="search-input"
+        />
+        <button type="submit" class="btn btn-search" [disabled]="cargando">
+          {{ cargando ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="table-section">
+      @if (cargando) {
+        <p class="loading">Cargando usuarios...</p>
+      } @else if (usuarios.length === 0) {
+        <p class="empty">No hay usuarios para mostrar. Realiza una búsqueda.</p>
+      } @else {
+        <table class="usuarios-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Apellido Paterno</th>
+              <th>Apellido Materno</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuarios; track usuario.idUsuario) {
+              <tr>
+                <td>{{ usuario.idUsuario }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.apellidoPaterno }}</td>
+                <td>{{ usuario.apellidoMaterno }}</td>
+                <td>{{ usuario.correo }}</td>
+                <td><span class="badge">{{ usuario.rol }}</span></td>
+                <td class="actions">
+                  <button class="btn btn-edit" (click)="abrirEditar(usuario)">Editar</button>
+                  <button class="btn btn-delete" (click)="eliminar(usuario.idUsuario)">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  <!-- Crear -->
+  @if (vista === 'crear') {
+    <section class="form-section">
+      <h3>Nuevo Usuario</h3>
+      <form [formGroup]="crearForm" (ngSubmit)="crear()" class="usuario-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input formControlName="nombre" type="text" />
+            @if (crearForm.get('nombre')?.invalid && crearForm.get('nombre')?.touched) {
+              <span class="error">El nombre es obligatorio.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Apellido Paterno</label>
+            <input formControlName="apellidoPaterno" type="text" />
+            @if (crearForm.get('apellidoPaterno')?.invalid && crearForm.get('apellidoPaterno')?.touched) {
+              <span class="error">El apellido paterno es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Materno</label>
+            <input formControlName="apellidoMaterno" type="text" />
+            @if (crearForm.get('apellidoMaterno')?.invalid && crearForm.get('apellidoMaterno')?.touched) {
+              <span class="error">El apellido materno es obligatorio.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Correo</label>
+            <input formControlName="correo" type="email" />
+            @if (crearForm.get('correo')?.invalid && crearForm.get('correo')?.touched) {
+              <span class="error">Correo inválido o faltante.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input formControlName="password" type="password" />
+            @if (crearForm.get('password')?.invalid && crearForm.get('password')?.touched) {
+              <span class="error">Mínimo 8 caracteres. Solo letras, números, +, / y =</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Rol</label>
+            <select formControlName="rol">
+              <option value="">Selecciona un rol</option>
+              <option value="1">1 - Administrador</option>
+              <option value="2">2 - Vendedor</option>
+              <option value="3">3 - Cliente</option>
+            </select>
+            @if (crearForm.get('rol')?.invalid && crearForm.get('rol')?.touched) {
+              <span class="error">El rol es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Clave de Agente</label>
+            <input formControlName="claveAgente" type="text" placeholder="Mínimo 3 dígitos" />
+            @if (crearForm.get('claveAgente')?.invalid && crearForm.get('claveAgente')?.touched) {
+              <span class="error">Solo números, mínimo 3 dígitos.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea formControlName="descripcion" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="crearForm.invalid || cargando">
+            {{ cargando ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- Editar -->
+  @if (vista === 'editar') {
+    <section class="form-section">
+      <h3>Editar Usuario</h3>
+      <form [formGroup]="editarForm" (ngSubmit)="actualizar()" class="usuario-form">
+        <input formControlName="idUsuario" type="hidden" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input formControlName="nombre" type="text" />
+            @if (editarForm.get('nombre')?.invalid && editarForm.get('nombre')?.touched) {
+              <span class="error">El nombre es obligatorio.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Apellido Paterno</label>
+            <input formControlName="apellidoPaterno" type="text" />
+            @if (editarForm.get('apellidoPaterno')?.invalid && editarForm.get('apellidoPaterno')?.touched) {
+              <span class="error">El apellido paterno es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellido Materno</label>
+            <input formControlName="apellidoMaterno" type="text" />
+            @if (editarForm.get('apellidoMaterno')?.invalid && editarForm.get('apellidoMaterno')?.touched) {
+              <span class="error">El apellido materno es obligatorio.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Correo</label>
+            <input formControlName="correo" type="email" />
+            @if (editarForm.get('correo')?.invalid && editarForm.get('correo')?.touched) {
+              <span class="error">Correo inválido o faltante.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input formControlName="password" type="password" placeholder="Nueva contraseña" />
+            @if (editarForm.get('password')?.invalid && editarForm.get('password')?.touched) {
+              <span class="error">Mínimo 8 caracteres. Solo letras, números, +, / y =</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Rol</label>
+            <select formControlName="rol">
+              <option value="">Selecciona un rol</option>
+              <option value="1">1 - Administrador</option>
+              <option value="2">2 - Vendedor</option>
+              <option value="3">3 - Cliente</option>
+            </select>
+            @if (editarForm.get('rol')?.invalid && editarForm.get('rol')?.touched) {
+              <span class="error">El rol es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Clave de Agente</label>
+            <input formControlName="claveAgente" type="text" placeholder="Mínimo 3 dígitos" />
+            @if (editarForm.get('claveAgente')?.invalid && editarForm.get('claveAgente')?.touched) {
+              <span class="error">Solo números, mínimo 3 dígitos.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <textarea formControlName="descripcion" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="editarForm.invalid || cargando">
+            {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

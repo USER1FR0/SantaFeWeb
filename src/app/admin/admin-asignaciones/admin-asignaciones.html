@@ -1,0 +1,228 @@
+<div class="admin-asig-wrapper">
+  <header class="page-header">
+    <h2>Gestión de Asignaciones</h2>
+    @if (vista === 'lista' && usuarioSeleccionado) {
+      <button class="btn btn-primary" (click)="abrirAsignar()">+ Asignar Productos</button>
+    }
+  </header>
+
+  @if (mensaje) {
+    <div [class]="esError ? 'alert alert-error' : 'alert alert-success'">{{ mensaje }}</div>
+  }
+
+  <!-- Buscar usuarios -->
+  @if (vista === 'lista' && !usuarioSeleccionado) {
+    <section class="search-section">
+      <p class="section-hint">Selecciona un usuario para ver y gestionar sus productos asignados.</p>
+      <form [formGroup]="buscarUsuarioForm" (ngSubmit)="buscarUsuarios()" class="search-form">
+        <input
+          formControlName="nombre"
+          type="text"
+          placeholder="Buscar usuario por nombre..."
+          class="search-input"
+        />
+        <button type="submit" class="btn btn-search" [disabled]="cargando">
+          {{ cargando ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="table-section">
+      @if (cargando) {
+        <p class="loading">Cargando usuarios...</p>
+      } @else if (usuarios.length === 0) {
+        <p class="empty">No hay usuarios para mostrar. Realiza una búsqueda.</p>
+      } @else {
+        <table class="asig-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuarios; track usuario.idUsuario) {
+              <tr>
+                <td>{{ usuario.idUsuario }}</td>
+                <td>{{ usuario.nombre }} {{ usuario.apellidoPaterno }}</td>
+                <td>{{ usuario.correo }}</td>
+                <td><span class="badge">{{ usuario.rol }}</span></td>
+                <td>
+                  <button class="btn btn-view" (click)="seleccionarUsuario(usuario)">
+                    Ver asignados
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  <!-- Productos asignados del usuario seleccionado -->
+  @if (vista === 'lista' && usuarioSeleccionado) {
+    <section class="usuario-header">
+      <div class="usuario-info">
+        <span class="usuario-nombre">{{ usuarioSeleccionado.nombre }} {{ usuarioSeleccionado.apellidoPaterno }}</span>
+        <span class="usuario-correo">{{ usuarioSeleccionado.correo }}</span>
+      </div>
+      <button class="btn btn-cancel" (click)="deseleccionarUsuario()">← Volver a usuarios</button>
+    </section>
+
+    <section class="table-section">
+      @if (cargandoAsignados) {
+        <p class="loading">Cargando productos asignados...</p>
+      } @else if (productosAsignados.length === 0) {
+        <p class="empty">Este usuario no tiene productos asignados.</p>
+      } @else {
+        <div class="productos-header">
+          <label class="check-todos">
+            <input
+              type="checkbox"
+              [checked]="todosAsignadosSeleccionados"
+              (change)="toggleTodosAsignados($event)"
+            />
+            Seleccionar todos
+          </label>
+          <span class="seleccion-count">
+            {{ asignadosSeleccionados.length }} de {{ productosAsignados.length }} seleccionado(s)
+          </span>
+        </div>
+
+        <table class="asig-table">
+          <thead>
+            <tr>
+              <th style="width:42px"></th>
+              <th>ID Asig.</th>
+              <th>Producto</th>
+              <th>Cantidad Actual</th>
+              <th>Cantidad Inicial</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asig of productosAsignados; track asig.item.assignedId) {
+              <tr [class.row-selected]="asig.checked">
+                <td>
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="asig.checked"
+                    class="row-checkbox"
+                  />
+                </td>
+                <td>{{ asig.item.assignedId }}</td>
+                <td>{{ asig.item.nombreProduct }}</td>
+                <td><span class="qty-badge">{{ asig.item.cantidad }}</span></td>
+                <td>{{ asig.item.initialQuantity }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (resultadosDesasignacion.length > 0) {
+          <div class="resultados-asignacion" style="margin-top:1rem">
+            <h4>Resultados:</h4>
+            @for (r of resultadosDesasignacion; track r.nombre) {
+              <div [class]="r.ok ? 'resultado-ok' : 'resultado-error'">
+                <strong>{{ r.nombre }}</strong>: {{ r.msg }}
+              </div>
+            }
+          </div>
+        }
+
+        <div class="form-actions" style="margin-top:1rem">
+          <button
+            class="btn btn-delete"
+            (click)="desasignarSeleccionados()"
+            [disabled]="asignadosSeleccionados.length === 0 || desasignandoMultiple"
+          >
+            {{ desasignandoMultiple ? 'Desasignando...' : 'Desasignar ' + asignadosSeleccionados.length + ' producto(s)' }}
+          </button>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Panel de asignación múltiple -->
+  @if (vista === 'asignar') {
+    <section class="form-section">
+      <h3>
+        Asignar Productos a
+        <span class="correo-highlight">{{ correoAsignar }}</span>
+      </h3>
+
+      @if (cargandoProductos) {
+        <p class="loading">Cargando productos...</p>
+      } @else {
+
+        <div class="productos-header">
+          <label class="check-todos">
+            <input
+              type="checkbox"
+              [checked]="todosSeleccionados"
+              (change)="toggleTodos($event)"
+            />
+            Seleccionar todos
+          </label>
+          <span class="seleccion-count">
+            {{ seleccionados.length }} de {{ productosSeleccion.length }} seleccionado(s)
+          </span>
+        </div>
+
+        <div class="productos-grid">
+          @for (item of productosSeleccion; track item.producto.idProducto) {
+            <div class="producto-card" [class.selected]="item.checked" [class.ya-asignado]="item.asignacionExistente">
+              <label class="producto-check-label">
+                <input type="checkbox" [(ngModel)]="item.checked" />
+                <span class="producto-nombre">{{ item.producto.nombreProduct }}</span>
+              </label>
+              @if (item.asignacionExistente) {
+                <span class="badge-asignado">Asignado: {{ item.asignacionExistente.cantidad }}</span>
+              }
+              <div class="producto-detalle">
+                <span class="producto-precio">${{ item.producto.precio | number:'1.2-2' }}</span>
+                <span class="producto-stock">Stock: {{ item.producto.cantidadProducto }}</span>
+              </div>
+              <div class="cantidad-row" [class.disabled]="!item.checked">
+                <label>{{ item.asignacionExistente ? 'Nueva cantidad:' : 'Cantidad:' }}</label>
+                <input
+                  type="number"
+                  [(ngModel)]="item.cantidad"
+                  min="1"
+                  [disabled]="!item.checked"
+                  class="cantidad-input"
+                />
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (resultadosAsignacion.length > 0) {
+          <div class="resultados-asignacion">
+            <h4>Resultados:</h4>
+            @for (r of resultadosAsignacion; track r.nombre) {
+              <div [class]="r.ok ? 'resultado-ok' : 'resultado-error'">
+                <strong>{{ r.nombre }}</strong>: {{ r.msg }}
+              </div>
+            }
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelar()">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="asignarMultiple()"
+            [disabled]="seleccionados.length === 0 || asignandoMultiple"
+          >
+            {{ asignandoMultiple ? 'Asignando...' : 'Asignar ' + seleccionados.length + ' producto(s)' }}
+          </button>
+        </div>
+      }
+    </section>
+  }
+</div>

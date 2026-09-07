@@ -1,0 +1,44 @@
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚙️</span>
+      <span class="brand-text">Admin Panel</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span>Usuarios</span>
+      </a>
+      <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📦</span>
+        <span>Productos</span>
+      </a>
+      <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏢</span>
+        <span>Clientes</span>
+      </a>
+      <a routerLink="/admin/presentaciones" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏷️</span>
+        <span>Presentaciones</span>
+      </a>
+      <a routerLink="/admin/compras" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🛒</span>
+        <span>Compras</span>
+      </a>
+      <a routerLink="/admin/asignaciones" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span>Asignaciones</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="admin-correo">{{ correo }}</span>
+      <button class="btn-logout" (click)="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </aside>
+
+  <main class="admin-content">
+    <router-outlet />
+  </main>
+</div>

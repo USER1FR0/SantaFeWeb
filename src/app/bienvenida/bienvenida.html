@@ -1,0 +1,46 @@
+<div class="bienvenida-wrapper">
+  <header class="page-header">
+    <h2>Panel de Bienvenida</h2>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="irAGestionUsuarios()">Gestionar Usuarios</button>
+      <button class="btn btn-logout" (click)="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="alert alert-error">{{ errorMessage }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading">Cargando usuarios...</p>
+  } @else {
+    <section class="summary">
+      <p>Usuarios registrados en el sistema: <strong>{{ usuarios.length }}</strong></p>
+    </section>
+
+    @if (usuarios.length > 0) {
+      <table class="usuarios-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido Paterno</th>
+            <th>Apellido Materno</th>
+            <th>Correo</th>
+            <th>Rol</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios; track usuario.idUsuario) {
+            <tr>
+              <td>{{ usuario.nombre }}</td>
+              <td>{{ usuario.apellidoPaterno }}</td>
+              <td>{{ usuario.apellidoMaterno }}</td>
+              <td>{{ usuario.correo }}</td>
+              <td><span class="badge">{{ usuario.rol }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>
