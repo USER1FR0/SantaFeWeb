@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angularApi": {
+    "apiAngular": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -56,10 +56,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angularApi:build:production"
+              "buildTarget": "apiAngular:build:production"
             },
             "development": {
-              "buildTarget": "angularApi:build:development"
+              "buildTarget": "apiAngular:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -90,6 +90,6 @@
     }
   },
   "cli": {
-    "analytics": "3900b319-e41e-4adc-a852-753a21438ba5"
+    "analytics": "6462bc41-e39e-48f6-b65c-2c7ff1da192d"
   }
 }
