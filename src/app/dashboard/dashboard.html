@@ -1,0 +1,152 @@
+<div class="dashboard-wrapper">
+
+  <header class="dashboard-header">
+    <div class="header-left">
+      <span class="brand">Lácteos Santa Fe</span>
+      <span class="correo-badge">{{ correo }}</span>
+    </div>
+    <button class="btn-logout" (click)="cerrarSesion()">Cerrar Sesión</button>
+  </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn" [class.active]="vista === 'productos'" (click)="cambiarVista('productos')">
+      Mis Productos Asignados
+    </button>
+    <button class="tab-btn" [class.active]="vista === 'compras'" (click)="cambiarVista('compras')">
+      Mis Ventas
+    </button>
+  </nav>
+
+  @if (mensaje) {
+    <div class="alert" [class.alert-error]="esError" [class.alert-success]="!esError">{{ mensaje }}</div>
+  }
+
+  <main class="dashboard-main">
+
+    <!-- PRODUCTOS ASIGNADOS -->
+    @if (vista === 'productos') {
+      <section class="section-card">
+        <div class="section-header">
+          <h3>Productos Asignados</h3>
+          <button class="btn-refresh" (click)="cargarProductos()" [disabled]="cargando">Actualizar</button>
+        </div>
+
+        @if (cargando) {
+          <p class="loading">Cargando productos...</p>
+        } @else if (productosAsignados.length === 0) {
+          <p class="empty">No tienes productos asignados.</p>
+        } @else {
+          <div class="cards-grid">
+            @for (p of productosAsignados; track $index) {
+              <div class="producto-card">
+                <div class="producto-nombre">{{ p.nombreProduct }}</div>
+                <div class="producto-info">
+                  <span class="label">Cantidad</span>
+                  <span class="value qty">{{ p.cantidad }}</span>
+                </div>
+                <div class="producto-info">
+                  <span class="label">Inicial</span>
+                  <span class="value">{{ p.initialQuantity }}</span>
+                </div>
+                <div class="producto-info">
+                  <span class="label">Vendido</span>
+                  <span class="value sold">{{ (p.initialQuantity ?? 0) - (p.cantidad ?? 0) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- MIS VENTAS -->
+    @if (vista === 'compras') {
+      <section class="section-card">
+        <div class="section-header">
+          <h3>Mis Ventas</h3>
+        </div>
+
+        <form [formGroup]="filtroComprasForm" (ngSubmit)="cargarCompras()" class="filter-form">
+          <div class="form-group">
+            <label>Fecha inicio</label>
+            <input formControlName="fechaInicio" type="date" />
+          </div>
+          <div class="form-group">
+            <label>Fecha fin</label>
+            <input formControlName="fechaFin" type="date" />
+          </div>
+          <button type="submit" class="btn-search" [disabled]="cargando">
+            {{ cargando ? 'Buscando...' : 'Filtrar' }}
+          </button>
+        </form>
+
+        @if (cargando) {
+          <p class="loading">Cargando ventas...</p>
+        } @else if (compras.length === 0) {
+          <p class="empty">No se encontraron ventas.</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of compras; track $index) {
+                <tr>
+                  <td>{{ c.id }}</td>
+                  <td>{{ c.claveCliente ?? '-' }}</td>
+                  <td>{{ c.fecha }}</td>
+                  <td>$ {{ c.total | number:'1.2-2' }}</td>
+                  <td>
+                    <span [class]="c.validado === 1 ? 'badge badge-green' : 'badge badge-orange'">
+                      {{ c.validado === 1 ? 'Validado' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn-detail" (click)="verDetalle(c)">
+                      {{ compraDetalle?.id === c.id ? 'Ocultar' : 'Ver' }}
+                    </button>
+                  </td>
+                </tr>
+                @if (compraDetalle?.id === c.id && c.detalles && c.detalles.length > 0) {
+                  <tr class="detalle-row">
+                    <td colspan="6">
+                      <table class="detalle-table">
+                        <thead>
+                          <tr>
+                            <th>Producto ID</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unit.</th>
+                            <th>Subtotal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (d of c.detalles; track $index) {
+                            <tr>
+                              <td>{{ d.productoId }}</td>
+                              <td>{{ d.cantidad }}</td>
+                              <td>$ {{ d.precioUnitario | number:'1.2-2' }}</td>
+                              <td>$ {{ ((d.cantidad ?? 0) * (d.precioUnitario ?? 0)) | number:'1.2-2' }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+          <p class="pagination-info">Total: {{ totalElementosCompras }} venta(s)</p>
+        }
+      </section>
+    }
+
+  </main>
+</div>

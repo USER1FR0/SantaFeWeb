@@ -1,0 +1,110 @@
+<div class="module-wrapper">
+  <header class="page-header">
+    <h2>Gestión de Clientes</h2>
+    @if (vista === 'lista') {
+      <button class="btn btn-primary" (click)="abrirCrear()">+ Nuevo Cliente</button>
+    }
+  </header>
+
+  @if (mensaje) {
+    <div [class]="esError ? 'alert alert-error' : 'alert alert-success'">{{ mensaje }}</div>
+  }
+
+  <!-- Lista -->
+  @if (vista === 'lista') {
+    <section class="table-section">
+      @if (cargando) {
+        <p class="loading">Cargando clientes...</p>
+      } @else if (clientes.length === 0) {
+        <p class="empty">No hay clientes registrados.</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Clave</th>
+              <th>Nombre</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of clientes; track $index) {
+              <tr>
+                <td>{{ c.id ?? '-' }}</td>
+                <td>{{ c.claveCliente }}</td>
+                <td>{{ c.nombreCliente }}</td>
+                <td class="actions">
+                  <button class="btn btn-edit" (click)="abrirEditar(c)">Editar</button>
+                  <button class="btn btn-delete" (click)="eliminar(c.id)" [disabled]="c.id === undefined">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  }
+
+  <!-- Crear -->
+  @if (vista === 'crear') {
+    <section class="form-section">
+      <h3>Nuevo Cliente</h3>
+      <form [formGroup]="crearForm" (ngSubmit)="crear()" class="data-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Clave Cliente *</label>
+            <input formControlName="claveCliente" type="text" />
+            @if (crearForm.get('claveCliente')?.invalid && crearForm.get('claveCliente')?.touched) {
+              <span class="error">La clave es obligatoria.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input formControlName="nombreCliente" type="text" />
+            @if (crearForm.get('nombreCliente')?.invalid && crearForm.get('nombreCliente')?.touched) {
+              <span class="error">El nombre es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="crearForm.invalid || cargando">
+            {{ cargando ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- Editar -->
+  @if (vista === 'editar') {
+    <section class="form-section">
+      <h3>Editar Cliente</h3>
+      <form [formGroup]="editarForm" (ngSubmit)="actualizar()" class="data-form">
+        <input formControlName="id" type="hidden" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>Clave Cliente *</label>
+            <input formControlName="claveCliente" type="text" />
+            @if (editarForm.get('claveCliente')?.invalid && editarForm.get('claveCliente')?.touched) {
+              <span class="error">La clave es obligatoria.</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Nombre *</label>
+            <input formControlName="nombreCliente" type="text" />
+            @if (editarForm.get('nombreCliente')?.invalid && editarForm.get('nombreCliente')?.touched) {
+              <span class="error">El nombre es obligatorio.</span>
+            }
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="editarForm.invalid || cargando">
+            {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>
